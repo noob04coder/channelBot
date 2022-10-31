@@ -1,19 +1,19 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const Rarepress = require('rarepress');
-const request = require('node-fetch');
+const request = require('request');
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('uploadNft')
+    .setName('upload')
     .setDescription('upload the given nft to rarible')
-    .addStringOption((option) => option.setName('Nft_Name').setDescription('name of the nft that will be created').setRequired(true))
-    .addNumberOption((option) => option.setName('Nft_Price').setDescription('Price for which nft to be listed').setRequired(true))
-    .addStringOption((option) => option.setName('Image_Url').setDescription('Url of the nft that will be created').setRequired(true))
-    .addStringOption((option) => option.setName('Nft_Description').setDescription('Description of the nft that will be created').setRequired(false)),
+    .addStringOption((option) => option.setName('nft_name').setDescription('name of the nft that will be created').setRequired(true))
+    .addNumberOption((option) => option.setName('nft_price').setDescription('price for which nft to be listed').setRequired(true))
+    .addStringOption((option) => option.setName('image_url').setDescription('url of the nft that will be created').setRequired(true))
+    .addStringOption((option) => option.setName('nft_description').setDescription('description of the nft that will be created').setRequired(false)),
   async execute(interaction) {
-    imgUrl = interaction.options.getString('Image_Url')
-    nftName = interaction.options.getString('Nft_Name')
-    nftPrice = interaction.options.getNumber('Nft_Price') * (10 ** 18)
-    nftDesc = interaction.options.getNumber('Nft_Description') ?? `${nftName}.png`
+    imgUrl = interaction.options.getString('image_url')
+    nftName = interaction.options.getString('nft_name')
+    nftPrice = interaction.options.getNumber('nft_price') * (10 ** 18)
+    nftDesc = interaction.options.getString('nft_description') ?? `${nftName}.png`
     request(imgUrl, function(error, response, body) {
       if (((response.headers['content-type']).match(/(image)+\//g)).length != 0) {
         (async () => {
@@ -32,7 +32,7 @@ module.exports = {
           await rarepress.fs.push(cid)
           await rarepress.fs.push(Token.uri);
           let sent = await rarepress.token.send(Token, "https://ethereum-api.rarible.org/v0.1/nft/mints");
-          await publishedLink = `https://rarible.com/token/${sent.id}`
+          publishedLink = await `https://rarible.com/token/${sent.id}`
           //console.log(`published: https://rarible.com/token/${sent.id}`);
           const trade = await rarepress.trade.create({
             what: {
@@ -49,7 +49,8 @@ module.exports = {
           const tradeResponse = await rarepress.trade.send(trade, "https://ethereum-api.rarible.org/v0.1/order/orders");
           await interaction.reply(`Published at : https://rarible.com/token/${sent.id}`)
         })();
-      } else {
+      }
+      else {
         interaction.reply(`Invalid Image Url`)
       }
     })
